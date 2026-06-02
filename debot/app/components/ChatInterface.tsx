@@ -139,7 +139,7 @@ export default function ChatInterface() {
     fetch(`${API}/api/query`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: "hi" }),
+      body: JSON.stringify({ question: "ping" }),
       signal: AbortSignal.timeout(6000),
     })
       .then(r => setOnline(r.ok || r.status < 500))
