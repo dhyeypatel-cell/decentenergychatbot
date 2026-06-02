@@ -2,7 +2,6 @@ import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
 
-// gemini-embedding-001 produces 3072-dimensional vectors
 export const EMBEDDING_DIMENSION = 3072;
 
 export async function embedText(text: string): Promise<number[]> {
