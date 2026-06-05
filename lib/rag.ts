@@ -33,15 +33,7 @@ export async function ragQuery(options: RAGQueryOptions): Promise<RAGResult> {
 
   const relevantMatches = matches.filter((m) => m.score >= minScore);
 
-  if (relevantMatches.length === 0) {
-    return {
-      answer: "I don't have enough information to answer that confidently. Please contact our support team.",
-      sources: [],
-      retrievedChunks: 0,
-    };
-  }
-
-  const context = buildContext(relevantMatches);
+  const context = relevantMatches.length > 0 ? buildContext(relevantMatches) : "";
   const answer = await generateAnswer(question, context);
 
   return {
@@ -67,16 +59,18 @@ async function generateAnswer(question: string, context: string): Promise<string
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     config: {
-      systemInstruction: `You are a helpful FAQ assistant for Decent Energy — a company offering energy flexibility trading products including Shîfter (smart battery management) and Flexer (grid flexibility rewards).
+      systemInstruction: `You are a helpful assistant for Decent Energy — a company offering energy flexibility trading products including Shîfter (smart battery management) and Flexer (grid flexibility rewards).
 
-Answer customer questions using ONLY the provided FAQ context. Follow these rules:
-- Answer directly and clearly based on the context provided.
+Answer customer questions using the following rules:
+- If FAQ context is provided and relevant, use it as your primary source and answer directly and clearly.
 - If multiple context chunks are relevant, synthesize them into a coherent answer.
-- If the question is not covered in the context, say so and suggest contacting support.
-- Keep answers concise but complete.
-- Never invent information not present in the context.`,
+- If the question is not covered in the FAQ context, or no context is provided, answer using your general knowledge. Be honest when you are answering from general knowledge rather than company-specific documentation.
+- For questions about Decent Energy-specific policies, pricing, or account details that are not in the FAQ, advise the customer to contact support for accurate information.
+- Keep answers concise but complete.`,
     },
-    contents: `FAQ Context:\n${context}\n\nCustomer Question: ${question}`,
+    contents: context
+      ? `FAQ Context:\n${context}\n\nCustomer Question: ${question}`
+      : `No FAQ context is available for this question.\n\nCustomer Question: ${question}`,
   });
 
   const text = response.text;
